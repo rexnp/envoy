@@ -27,6 +27,7 @@ envoy_cc_library(
         "//source/common/buffer:buffer_lib",
         "//source/common/common:hex_lib",
         "//source/common/common:logger_lib",
+        "//source/common/common:matchers_lib",
         "//source/common/common:utility_lib",
         "//source/common/crypto:utility_lib",
         "//source/common/http:headers_lib",
@@ -62,6 +63,7 @@ envoy_cc_library(
     external_deps = ["curl"],
     deps = [
         "//source/common/common:empty_string",
+        "//source/common/common:matchers_lib",
         "//source/common/common:utility_lib",
         "//source/common/http:headers_lib",
     ],

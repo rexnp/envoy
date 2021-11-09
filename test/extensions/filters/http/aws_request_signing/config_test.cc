@@ -21,6 +21,9 @@ TEST(AwsRequestSigningFilterConfigTest, SimpleConfig) {
   const std::string yaml = R"EOF(
 service_name: s3
 region: us-west-2
+match_excluded_headers:
+  prefix: [x-envoy]
+  exact: [foo]
   )EOF";
 
   AwsRequestSigningProtoConfig proto_config;

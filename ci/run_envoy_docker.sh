@@ -98,5 +98,6 @@ docker run --rm \
        -e SYSTEM_STAGEDISPLAYNAME \
        -e SYSTEM_JOBDISPLAYNAME \
        -e SYSTEM_PULLREQUEST_PULLREQUESTNUMBER \
+       -e GOPROXY=direct \
        "${ENVOY_BUILD_IMAGE}" \
        "${START_COMMAND[@]}"
