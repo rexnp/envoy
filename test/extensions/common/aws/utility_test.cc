@@ -90,33 +90,19 @@ TEST(UtilityTest, CanonicalizeHeadersTrimmingWhitespace) {
                           Pair("leading", "leading value"), Pair("trailing", "trailing value")));
 }
 
-// Headers that are likely to mutate are not considered canonical
-TEST(UtilityTest, CanonicalizeHeadersDropMutatingHeadersDefault) {
-  Http::TestRequestHeaderMapImpl headers{
-      {":authority", "example.com"},          {"x-forwarded-for", "1.2.3.4"},
-      {"x-forwarded-proto", "https"},         {"x-amz-date", "20130708T220855Z"},
-      {"x-amz-content-sha256", "e3b0c44..."},
-  };
-  std::vector<Matchers::StringMatcherPtr> exclusion_list = {};
-  const auto map = Utility::canonicalizeHeaders(headers, exclusion_list);
-  EXPECT_THAT(map,
-              ElementsAre(Pair("host", "example.com"), Pair("x-amz-content-sha256", "e3b0c44..."),
-                          Pair("x-amz-date", "20130708T220855Z")));
-}
-
-// Headers that match the exclusion list are not canonicalized
-TEST(UtilityTest, CanonicalizeHeadersDropMutatingHeadersWithExcludeMatchers) {
+// Headers in the exclusion list are not canonicalized
+TEST(UtilityTest, CanonicalizeHeadersDropExcludedMatchers) {
   Http::TestRequestHeaderMapImpl headers{
       {":authority", "example.com"},          {"x-forwarded-for", "1.2.3.4"},
       {"x-forwarded-proto", "https"},         {"x-amz-date", "20130708T220855Z"},
       {"x-amz-content-sha256", "e3b0c44..."}, {"x-envoy-retry-on", "5xx,reset"},
-      {"x-envoy-max-retries", "3"},           {"exact-match-header", "foo"},
-      {"exact-match-header-2", "bar"}};
+      {"x-envoy-max-retries", "3"},           {"x-amzn-trace-id", "0123456789"}};
   std::vector<Matchers::StringMatcherPtr> exclusion_list = {};
-  std::vector<std::string> exact_matches = {"exact-match-header", "exact-match-header-2"};
+  std::vector<std::string> exact_matches = {"x-amzn-trace-id", "x-forwarded-for",
+                                            "x-forwarded-proto"};
   for (auto& str : exact_matches) {
     envoy::type::matcher::v3::StringMatcher config;
-    config.MergeFrom(TestUtility::createExactMatcher(str));
+    config.set_exact(str);
     exclusion_list.emplace_back(
         std::make_unique<Matchers::StringMatcherImpl<envoy::type::matcher::v3::StringMatcher>>(
             config));
@@ -124,7 +110,7 @@ TEST(UtilityTest, CanonicalizeHeadersDropMutatingHeadersWithExcludeMatchers) {
   std::vector<std::string> prefixes = {"x-envoy"};
   for (auto& match_str : prefixes) {
     envoy::type::matcher::v3::StringMatcher config;
-    config.MergeFrom(TestUtility::createPrefixMatcher(match_str));
+    config.set_prefix(match_str);
     exclusion_list.emplace_back(
         std::make_unique<Matchers::StringMatcherImpl<envoy::type::matcher::v3::StringMatcher>>(
             config));

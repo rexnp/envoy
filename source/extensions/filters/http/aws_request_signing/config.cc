@@ -21,7 +21,7 @@ Http::FilterFactoryCb AwsRequestSigningFilterFactory::createFilterFactoryFromPro
   auto credentials_provider =
       std::make_shared<Extensions::Common::Aws::DefaultCredentialsProviderChain>(
           context.api(), Extensions::Common::Aws::Utility::metadataFetcher);
-  const auto matcher_config = std::vector<envoy::type::matcher::v3::StringMatcher>(
+  const auto matcher_config = Extensions::Common::Aws::AwsSigV4HeaderExclusionVector(
       config.match_excluded_headers().begin(), config.match_excluded_headers().end());
   auto signer = std::make_unique<Extensions::Common::Aws::SignerImpl>(
       config.service_name(), config.region(), credentials_provider,

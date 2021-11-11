@@ -5,6 +5,7 @@
 #include "source/common/common/logger.h"
 #include "source/common/common/matchers.h"
 #include "source/common/common/utility.h"
+#include "source/common/http/headers.h"
 #include "source/common/singleton/const_singleton.h"
 #include "source/extensions/common/aws/credentials_provider.h"
 #include "source/extensions/common/aws/signer.h"
@@ -41,6 +42,8 @@ public:
 
 using SignatureConstants = ConstSingleton<SignatureConstantValues>;
 
+using AwsSigV4HeaderExclusionVector = std::vector<envoy::type::matcher::v3::StringMatcher>;
+
 /**
  * Implementation of the Signature V4 signing process.
  * See https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html
@@ -49,7 +52,7 @@ class SignerImpl : public Signer, public Logger::Loggable<Logger::Id::http> {
 public:
   SignerImpl(absl::string_view service_name, absl::string_view region,
              const CredentialsProviderSharedPtr& credentials_provider, TimeSource& time_source,
-             const std::vector<envoy::type::matcher::v3::StringMatcher>& matcher_config)
+             const AwsSigV4HeaderExclusionVector& matcher_config)
       : service_name_(service_name), region_(region), credentials_provider_(credentials_provider),
         time_source_(time_source), long_date_formatter_(SignatureConstants::get().LongDateFormat),
         short_date_formatter_(SignatureConstants::get().ShortDateFormat) {
@@ -81,9 +84,24 @@ private:
                                         const std::map<std::string, std::string>& canonical_headers,
                                         absl::string_view signature) const;
 
+  std::vector<Matchers::StringMatcherPtr> defaultMatchers() {
+    std::vector<Matchers::StringMatcherPtr> default_excluded_headers{};
+    for (const auto& header : default_excluded_headers_) {
+      envoy::type::matcher::v3::StringMatcher m;
+      m.set_exact(header);
+      default_excluded_headers.emplace_back(
+          std::make_unique<Matchers::StringMatcherImpl<envoy::type::matcher::v3::StringMatcher>>(
+              m));
+    }
+    return default_excluded_headers;
+  }
+
   const std::string service_name_;
   const std::string region_;
-  std::vector<Matchers::StringMatcherPtr> excluded_header_matchers_;
+  const std::vector<std::string> default_excluded_headers_ = {
+      Http::Headers::get().ForwardedFor.get(), Http::Headers::get().ForwardedProto.get(),
+      "x-amzn-trace-id"};
+  std::vector<Matchers::StringMatcherPtr> excluded_header_matchers_ = defaultMatchers();
   CredentialsProviderSharedPtr credentials_provider_;
   TimeSource& time_source_;
   DateFormatter long_date_formatter_;

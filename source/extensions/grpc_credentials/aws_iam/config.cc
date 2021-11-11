@@ -48,7 +48,7 @@ std::shared_ptr<grpc::ChannelCredentials> AwsIamGrpcCredentialsFactory::getChann
             api, Common::Aws::Utility::metadataFetcher);
         auto signer = std::make_unique<Common::Aws::SignerImpl>(
             config.service_name(), getRegion(config), credentials_provider, api.timeSource(),
-            std::vector<envoy::type::matcher::v3::StringMatcher>{});
+            Common::Aws::AwsSigV4HeaderExclusionVector{});
         std::shared_ptr<grpc::CallCredentials> new_call_creds = grpc::MetadataCredentialsFromPlugin(
             std::make_unique<AwsIamHeaderAuthenticator>(std::move(signer)));
         if (call_creds == nullptr) {

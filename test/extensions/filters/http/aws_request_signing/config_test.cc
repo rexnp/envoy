@@ -22,8 +22,9 @@ TEST(AwsRequestSigningFilterConfigTest, SimpleConfig) {
 service_name: s3
 region: us-west-2
 match_excluded_headers:
-  prefix: [x-envoy]
-  exact: [foo]
+  - prefix: x-envoy
+  - exact: foo
+  - exact: bar
   )EOF";
 
   AwsRequestSigningProtoConfig proto_config;

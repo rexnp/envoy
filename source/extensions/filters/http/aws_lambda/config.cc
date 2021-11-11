@@ -49,7 +49,7 @@ Http::FilterFactoryCb AwsLambdaFilterFactory::createFilterFactoryFromProtoTyped(
   auto signer = std::make_shared<Extensions::Common::Aws::SignerImpl>(
       service_name, region, std::move(credentials_provider),
       context.mainThreadDispatcher().timeSource(),
-      std::vector<envoy::type::matcher::v3::StringMatcher>{});
+      Extensions::Common::Aws::AwsSigV4HeaderExclusionVector{});
 
   FilterSettings filter_settings{*arn, getInvocationMode(proto_config),
                                  proto_config.payload_passthrough()};
