@@ -84,16 +84,16 @@ private:
                                         const std::map<std::string, std::string>& canonical_headers,
                                         absl::string_view signature) const;
 
-  std::vector<Matchers::StringMatcherPtr> defaultMatchers() {
-    std::vector<Matchers::StringMatcherPtr> default_excluded_headers{};
+  std::vector<Matchers::StringMatcherPtr> defaultMatchers() const {
+    std::vector<Matchers::StringMatcherPtr> matcher_ptrs{};
     for (const auto& header : default_excluded_headers_) {
       envoy::type::matcher::v3::StringMatcher m;
       m.set_exact(header);
-      default_excluded_headers.emplace_back(
+      matcher_ptrs.emplace_back(
           std::make_unique<Matchers::StringMatcherImpl<envoy::type::matcher::v3::StringMatcher>>(
               m));
     }
-    return default_excluded_headers;
+    return matcher_ptrs;
   }
 
   const std::string service_name_;
