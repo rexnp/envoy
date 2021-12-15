@@ -347,6 +347,7 @@ TEST_F(XRayTracerTest, ChildSpanHasParentInfo) {
     // Hex encoded 64 bit identifier
     EXPECT_STREQ("00000000000003e7", s.parent_id().c_str());
     EXPECT_EQ(expected_->span_name, s.name().c_str());
+    EXPECT_EQ(Subsegment, s.type().c_str());
     EXPECT_STREQ(xray_parent_span->traceId().c_str(), s.trace_id().c_str());
     EXPECT_STREQ("0000003d25bebe62", s.id().c_str());
   };
