@@ -145,7 +145,7 @@ public:
     return drain_manager_->drainClose() || server_.drainManager().drainClose();
   }
   Common::CallbackHandlePtr addOnDrainCloseCb(DrainCloseCb) const override {
-    NOT_REACHED_GCOVR_EXCL_LINE;
+    IS_ENVOY_BUG("Unexpected function call");
     return nullptr;
   }
   Server::DrainManager& drainManager();
@@ -435,7 +435,6 @@ private:
   std::vector<Network::ListenerFilterFactoryCb> listener_filter_factories_;
   std::vector<Network::UdpListenerFilterFactoryCb> udp_listener_filter_factories_;
   std::vector<AccessLog::InstanceSharedPtr> access_logs_;
-  DrainManagerPtr local_drain_manager_;
   const envoy::config::listener::v3::Listener config_;
   const std::string version_info_;
   Network::Socket::OptionsSharedPtr listen_socket_options_;
