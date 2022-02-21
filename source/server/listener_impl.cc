@@ -290,7 +290,7 @@ Network::DrainDecision& ListenerFactoryContextBaseImpl::drainDecision() { return
 Server::DrainManager& ListenerFactoryContextBaseImpl::drainManager() { return *drain_manager_; }
 
 // Must be overridden
-Init::Manager& ListenerFactoryContextBaseImpl::initManager() { NOT_IMPLEMENTED_GCOVR_EXCL_LINE; }
+Init::Manager& ListenerFactoryContextBaseImpl::initManager() { PANIC("not implemented"); }
 
 ListenerImpl::ListenerImpl(const envoy::config::listener::v3::Listener& config,
                            const std::string& version_info, ListenerManagerImpl& parent,
@@ -591,8 +591,6 @@ void ListenerImpl::createListenerFilterFactories(Network::Socket::Type socket_ty
       listener_filter_factories_ = parent_.factory_.createListenerFilterFactoryList(
           config_.listener_filters(), *listener_factory_context_);
       break;
-    default:
-      NOT_REACHED_GCOVR_EXCL_LINE;
     }
   }
 }
@@ -709,9 +707,7 @@ Event::Dispatcher& PerListenerFactoryContextImpl::mainThreadDispatcher() {
 const Server::Options& PerListenerFactoryContextImpl::options() {
   return listener_factory_context_base_->options();
 }
-Network::DrainDecision& PerListenerFactoryContextImpl::drainDecision() {
-  NOT_IMPLEMENTED_GCOVR_EXCL_LINE;
-}
+Network::DrainDecision& PerListenerFactoryContextImpl::drainDecision() { PANIC("not implemented"); }
 Grpc::Context& PerListenerFactoryContextImpl::grpcContext() {
   return listener_factory_context_base_->grpcContext();
 }

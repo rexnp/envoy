@@ -89,8 +89,10 @@ enum ResponseFlag {
   NoClusterFound = 0x1000000,
   // Overload Manager terminated the stream.
   OverloadManager = 0x2000000,
+  // DNS resolution failed.
+  DnsResolutionFailed = 0x4000000,
   // ATTENTION: MAKE SURE THIS REMAINS EQUAL TO THE LAST FLAG.
-  LastFlag = OverloadManager,
+  LastFlag = DnsResolutionFailed,
 };
 
 /**
@@ -193,6 +195,10 @@ struct ResponseCodeDetailValues {
       "filter_removed_required_response_headers";
   // The request was rejected because the original IP couldn't be detected.
   const std::string OriginalIPDetectionFailed = "rejecting_because_detection_failed";
+  // A filter called addDecodedData at the wrong point in the filter chain.
+  const std::string FilterAddedInvalidRequestData = "filter_added_invalid_request_data";
+  // A filter called addDecodedData at the wrong point in the filter chain.
+  const std::string FilterAddedInvalidResponseData = "filter_added_invalid_response_data";
   // Changes or additions to details should be reflected in
   // docs/root/configuration/http/http_conn_man/response_code_details.rst
 };
@@ -347,6 +353,17 @@ public:
   virtual absl::optional<uint64_t> upstreamConnectionId() const PURE;
 
   /**
+   * @param interface name of the upstream connection's local socket.
+   */
+  virtual void setUpstreamInterfaceName(absl::string_view interface_name) PURE;
+
+  /**
+   * @return interface name of the upstream connection's local socket, or absl::nullopt if not
+   * available.
+   */
+  virtual absl::optional<absl::string_view> upstreamInterfaceName() const PURE;
+
+  /**
    * @param connection_info sets the upstream ssl connection.
    */
   virtual void
@@ -434,8 +451,9 @@ public:
   virtual void setResponseCode(uint32_t code) PURE;
 
   /**
-   * @param rc_details the response code details string to set for this request.
-   * See ResponseCodeDetailValues above for well-known constants.
+   * @param rc_details the response code details string to set for this request. It should not
+   * contain any empty or space characters (' ', '\t', '\f', '\v', '\n', '\r'). See
+   * ResponseCodeDetailValues above for well-known constants.
    */
   virtual void setResponseCodeDetails(absl::string_view rc_details) PURE;
 
@@ -707,6 +725,44 @@ public:
     downstream_info.setUpstreamBytesMeter(upstream_info.getUpstreamBytesMeter());
     upstream_info.setDownstreamBytesMeter(downstream_info.getDownstreamBytesMeter());
   }
+};
+
+// An enum representation of the Proxy-Status error space.
+enum class ProxyStatusError {
+  DnsTimeout,
+  DnsError,
+  DestinationNotFound,
+  DestinationUnavailable,
+  DestinationIpProhibited,
+  DestinationIpUnroutable,
+  ConnectionRefused,
+  ConnectionTerminated,
+  ConnectionTimeout,
+  ConnectionReadTimeout,
+  ConnectionWriteTimeout,
+  ConnectionLimitReached,
+  TlsProtocolError,
+  TlsCertificateError,
+  TlsAlertReceived,
+  HttpRequestError,
+  HttpRequestDenied,
+  HttpResponseIncomplete,
+  HttpResponseHeaderSectionSize,
+  HttpResponseHeaderSize,
+  HttpResponseBodySize,
+  HttpResponseTrailerSectionSize,
+  HttpResponseTrailerSize,
+  HttpResponseTransferCoding,
+  HttpResponseContentCoding,
+  HttpResponseTimeout,
+  HttpUpgradeFailed,
+  HttpProtocolError,
+  ProxyInternalResponse,
+  ProxyInternalError,
+  ProxyConfigurationError,
+  ProxyLoopDetected,
+  // ATTENTION: MAKE SURE THAT THIS REMAINS EQUAL TO THE LAST FLAG.
+  LastProxyStatus = ProxyLoopDetected,
 };
 
 } // namespace StreamInfo
