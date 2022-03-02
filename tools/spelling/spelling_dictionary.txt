@@ -399,6 +399,7 @@ XFF
 XML
 XN
 XNOR
+XRay
 XSS
 YAML
 ZXID
@@ -1174,6 +1175,7 @@ subnets
 suboptimal
 subsecond
 subseconds
+subsegment
 subsequence
 subsetting
 substr
